@@ -1,1 +1,8 @@
-
+{
+  "version": "1.0.0",
+  "forceUpdate": false,
+  "releaseDate": "2025-11-20",
+  "description": "- 修复了周日无法设置关机的Bug。\n- 优化了启动动画性能。",
+  "downloadUrl": "https://github.com/A2287727616A/SeewoSTZapp/releases/v1.5.0/setup.exe",
+  "publicMessage": "提示：近期发现系统漏洞，请及时更新您的 Windows 系统。"
+}
