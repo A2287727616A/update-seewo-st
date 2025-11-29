@@ -2,7 +2,7 @@
     "version": "1.0.3",
     "forceUpdate": false,
     "releaseDate": "2025-11-29",
-    "description": "v1.0.2 更新内容：\n- 修复卸载后控制面板残留问题\n- 修复安装后程序不自动启动问题\n- 优化注册表清理逻辑\n- 应用现已自包含 .NET 运行时",
+    "description": "v1.0.3 更新内容：\n- 修复卸载后控制面板残留问题\n- 修复安装后程序不自动启动问题\n- 优化注册表清理逻辑\n- 应用现已自包含 .NET 运行时",
     "downloadUrl": "https://root.cn-nb1.rains3.com/SeewoSTZapp_Setup_v1.0.3.exe",
     "publicMessage": "【公告】欢迎使用 Seewo ST Zapp ！\n如有问题请联系：a2287727616a@163.com"
 }
