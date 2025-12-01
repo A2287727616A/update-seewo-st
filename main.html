@@ -1,1 +1,1405 @@
-1
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z UDisk Checker - U盘真实容量检测工具</title>
+    <meta name="description" content="专业的U盘扩容盘检测工具，精准识别假冒U盘，保护您的数据安全">
+    <meta name="keywords" content="U盘检测,扩容盘,容量检测,USB检测,假U盘">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0078D4;
+            --primary-dark: #005A9E;
+            --primary-light: #4BA0E8;
+            --success: #107C10;
+            --danger: #E81123;
+            --warning: #FF8C00;
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --bg-card-hover: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border: #2a2a2a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(0, 120, 212, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(16, 124, 16, 0.1) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(2%, 2%) rotate(1deg); }
+            50% { transform: translate(-1%, 3%) rotate(-1deg); }
+            75% { transform: translate(1%, -2%) rotate(0.5deg); }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 0.75rem 2rem;
+            background: rgba(10, 10, 10, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-download {
+            background: var(--primary);
+            color: white !important;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            transition: all 0.3s ease !important;
+        }
+
+        .nav-download:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.4);
+        }
+
+        .nav-download::after {
+            display: none !important;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 2rem 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text {
+            animation: slideInLeft 1s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 120, 212, 0.1);
+            border: 1px solid rgba(0, 120, 212, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--primary-light);
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(0, 120, 212, 0); }
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 120, 212, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary);
+        }
+
+        .hero-visual {
+            position: relative;
+            animation: slideInRight 1s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .app-preview {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(90deg, var(--bg-card-hover), var(--bg-card));
+            border-bottom: 1px solid var(--border);
+        }
+
+        .window-dots {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 1;
+        }
+
+        .window-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .window-dots span:nth-child(1) { background: #ff5f56; }
+        .window-dots span:nth-child(2) { background: #ffbd2e; }
+        .window-dots span:nth-child(3) { background: #27ca40; }
+
+        .app-content {
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        .scan-animation {
+            height: 200px;
+            background: linear-gradient(180deg, rgba(0, 120, 212, 0.1), transparent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 1; }
+            100% { top: 100%; opacity: 0.3; }
+        }
+
+        .usb-icon {
+            font-size: 4rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .progress-bars {
+            margin-top: 20px;
+        }
+
+        .progress-item {
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            animation: progressAnim 3s ease-out infinite;
+        }
+
+        .progress-fill.green { background: var(--success); }
+        .progress-fill.blue { background: var(--primary); }
+        .progress-fill.orange { background: var(--warning); }
+
+        @keyframes progressAnim {
+            0% { width: 0; }
+            50% { width: 100%; }
+            100% { width: 100%; }
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 2rem;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .stat-item:nth-child(1) { animation-delay: 0.1s; }
+        .stat-item:nth-child(2) { animation-delay: 0.2s; }
+        .stat-item:nth-child(3) { animation-delay: 0.3s; }
+        .stat-item:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: rgba(0, 120, 212, 0.1);
+            color: var(--primary-light);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(0, 120, 212, 0.2), rgba(0, 120, 212, 0.1));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 6rem 2rem;
+            background: var(--bg-card);
+        }
+
+        .steps-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .steps-line {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            position: relative;
+        }
+
+        .step-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .step-item:hover .step-number {
+            background: var(--primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 120, 212, 0.5);
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Warning Section */
+        .warning-section {
+            padding: 6rem 2rem;
+        }
+
+        .warning-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .warning-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--danger);
+        }
+
+        .warning-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .warning-list {
+            list-style: none;
+        }
+
+        .warning-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .warning-list li::before {
+            content: '⚠️';
+            flex-shrink: 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .comparison-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-item:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-item.genuine {
+            background: rgba(16, 124, 16, 0.1);
+        }
+
+        .comparison-item.fake {
+            background: rgba(232, 17, 35, 0.1);
+        }
+
+        .comparison-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .genuine .comparison-value { color: var(--success); }
+        .fake .comparison-value { color: var(--danger); }
+
+        /* Download Section */
+        .download {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--bg-card), var(--bg-dark));
+        }
+
+        .download-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .download-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--success), var(--primary-light));
+        }
+
+        .download-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 120, 212, 0.3);
+        }
+
+        .download-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .download-version {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .download-features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .download-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .download-feature span:first-child {
+            color: var(--success);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.25rem 3rem;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 120, 212, 0.4);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 120, 212, 0.5);
+        }
+
+        .download-info {
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .footer-copyright {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-light);
+        }
+
+        /* Legal Sections */
+        .legal-section {
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .legal-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .legal-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
+        .legal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .legal-content h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .legal-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .legal-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Scroll Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 968px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-desc {
+                margin: 0 auto 2rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-line {
+                display: none;
+            }
+
+            .warning-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-gradient"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">Z</div>
+                <span class="logo-text">UDisk Checker</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">功能特性</a></li>
+                <li><a href="#how-it-works">使用方法</a></li>
+                <li><a href="#warning">扩容盘危害</a></li>
+                <li><a href="#download" class="nav-download">立即下载</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span>🛡️</span>
+                    <span>专业U盘检测工具</span>
+                </div>
+                <h1 class="hero-title">
+                    精准检测<br>
+                    <span>U盘真实容量</span>
+                </h1>
+                <p class="hero-desc">
+                    Z UDisk Checker 是一款专业的U盘真实容量检测工具，能够精准识别"扩容盘"，保护您的数据安全，避免买到假冒U盘。
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <span>📥</span>
+                        免费下载
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <span>📖</span>
+                        了解更多
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="app-preview">
+                    <div class="window-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="app-content">
+                        <div class="scan-animation">
+                            <div class="scan-line"></div>
+                            <div class="usb-icon">💾</div>
+                        </div>
+                        <div class="progress-bars">
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>检测进度</span>
+                                    <span>100%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill blue"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>有效区块</span>
+                                    <span>98.5%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill green" style="animation-delay: 0.5s;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>写入速度</span>
+                                    <span>25.6 MB/s</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill orange" style="animation-delay: 1s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number">80.9%</div>
+                <div class="stat-label">检测准确率<div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">2种</div>
+                <div class="stat-label">检测模式</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">自动</div>
+                <div class="stat-label">数据备份</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">PDF</div>
+                <div class="stat-label">报告导出</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header reveal">
+            <div class="section-tag">功能特性</div>
+            <h2 class="section-title">强大的检测能力</h2>
+            <p class="section-desc">专为识别假冒U盘而设计，提供全方位的检测和保护</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title">扩容盘识别</h3>
+                <p class="feature-desc">精准检测标称容量与真实容量的差异，识别扩容盘欺诈行为</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">双模式检测</h3>
+                <p class="feature-desc">简单检查快速验证，完整检查逐块扫描，满足不同需求</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">💾</div>
+                <h3 class="feature-title">自动备份</h3>
+                <p class="feature-desc">测试前自动备份U盘数据到桌面，确保数据安全无忧</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">可视化报告</h3>
+                <p class="feature-desc">实时显示区块健康状态，直观展示检测结果</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">📄</div>
+                <h3 class="feature-title">PDF导出</h3>
+                <p class="feature-desc">一键生成专业检测报告，方便保存和分享证据</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🛡️</div>
+                <h3 class="feature-title">安全防护</h3>
+                <p class="feature-desc">限制模式防止误操作，保护系统盘不被误格式化</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header reveal">
+            <div class="section-tag">使用方法</div>
+            <h2 class="section-title">简单四步完成检测</h2>
+            <p class="section-desc">清晰的步骤引导，轻松完成U盘检测</p>
+        </div>
+        <div class="steps-container">
+            <div class="steps-line"></div>
+            <div class="steps-grid">
+                <div class="step-item reveal">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">选择U盘</h3>
+                    <p class="step-desc">插入U盘，从列表选择要检测的设备</p>
+                </div>
+                <div class="step-item reveal">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">自动备份</h3>
+                    <p class="step-desc">软件自动备份数据到桌面</p>
+                </div>
+                <div class="step-item reveal">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">执行检测</h3>
+                    <p class="step-desc">写入验证数据，检测真实容量</p>
+                </div>
+                <div class="step-item reveal">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">查看报告</h3>
+                    <p class="step-desc">获取详细检测结果和PDF报告</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Warning Section -->
+    <section class="warning-section" id="warning">
+        <div class="warning-container">
+            <div class="warning-content reveal">
+                <h2>⚠️ 扩容盘的危害</h2>
+                <p>扩容盘是一种欺诈性的假冒U盘，通过修改芯片信息，使系统显示虚假的大容量，实际容量可能只有几GB。</p>
+                <ul class="warning-list">
+                    <li>超出真实容量的数据会被覆盖或丢失</li>
+                    <li>重要文件可能无法正常读取</li>
+                    <li>可能导致不可挽回的数据损失</li>
+                    <li>商家虚假宣传，消费者权益受损</li>
+                </ul>
+            </div>
+            <div class="comparison-card reveal">
+                <div class="comparison-item genuine">
+                    <div class="comparison-label">正品U盘</div>
+                    <div class="comparison-value">✓ 标称 64GB = 实际 64GB</div>
+                </div>
+                <div class="comparison-item fake">
+                    <div class="comparison-label">扩容盘</div>
+                    <div class="comparison-value">✗ 标称 64GB ≠ 实际 8GB</div>
+                </div>
+                <div class="comparison-item">
+                    <div class="comparison-label">使用 Z UDisk Checker</div>
+                    <div class="comparison-value" style="color: var(--primary);">🔍 一键识别真伪</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="download-container">
+            <div class="download-card reveal">
+                <div class="download-icon">📥</div>
+                <h2 class="download-title">下载 Z UDisk Checker</h2>
+                <p class="download-version">版本 1.0.0 | Windows 10/11</p>
+                <div class="download-features">
+                    <div class="download-feature">
+                        <span>✓</span>
+                        <span>完全免费</span>
+                    </div>
+                    <div class="download-feature">
+                        <span>✓</span>
+                        <span>无需安装</span>
+                    </div>
+                    <div class="download-feature">
+                        <span>✓</span>
+                        <span>绿色安全</span>
+                    </div>
+                </div>
+                <a href="https://root.cn-nb1.rains3.com/ZUDiskChecker.exe" class="download-btn">
+                    <span>⬇️</span>
+                    立即下载 (160 MB)
+                </a>
+                <p class="download-info">
+                    需要管理员权限运行 | 支持 Windows 10/11 64位
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Policy Section -->
+    <section class="legal-section" id="privacy">
+        <div class="legal-container">
+            <h2>隐私政策</h2>
+            <div class="legal-content">
+                <h3>1. 信息收集</h3>
+                <p>Z UDisk Checker 是一款完全本地运行的软件，不会收集、上传或存储您的任何个人信息。所有检测操作均在您的本地计算机上完成。</p>
+                
+                <h3>2. 数据处理</h3>
+                <p>软件在检测过程中会读取U盘的设备信息（如容量、型号等），这些信息仅用于本地显示和生成检测报告，不会被发送到任何服务器。</p>
+                
+                <h3>3. 备份数据</h3>
+                <p>软件提供的自动备份功能会将U盘数据复制到您的桌面，备份文件完全由您控制，我们不会访问这些数据。</p>
+                
+                <h3>4. 第三方服务</h3>
+                <p>本软件不集成任何第三方分析、广告或追踪服务。</p>
+                
+                <h3>5. 政策更新</h3>
+                <p>如有隐私政策更新，我们将在官网公布最新版本。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Terms of Service Section -->
+    <section class="legal-section" id="terms">
+        <div class="legal-container">
+            <h2>使用条款</h2>
+            <div class="legal-content">
+                <h3>1. 软件许可</h3>
+                <p>Z UDisk Checker 是由 Zhao Group 开发的免费软件。您可以免费下载、使用和分享本软件，但不得用于商业销售。</p>
+                
+                <h3>2. 使用风险</h3>
+                <p>本软件的检测功能涉及对U盘进行格式化操作，这将删除U盘上的所有数据。虽然软件提供自动备份功能，但用户应在使用前确认已妥善备份重要数据。对于因使用本软件导致的数据丢失，开发者不承担责任。</p>
+                
+                <h3>3. 免责声明</h3>
+                <p>本软件按"现状"提供，不提供任何明示或暗示的保证。检测结果仅供参考，建议多次测试以确保准确性。</p>
+                
+                <h3>4. 知识产权</h3>
+                <p>本软件的所有知识产权归 Zhao Group 所有。未经授权，不得对软件进行反编译、修改或二次分发。</p>
+                
+                <h3>5. 条款修改</h3>
+                <p>Zhao Group 保留随时修改本使用条款的权利，修改后的条款将在官网公布。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-logo">
+                <div class="footer-logo-icon">Z</div>
+                <span>UDisk Checker</span>
+            </div>
+            <div class="footer-copyright">
+                © 2025 Zhao Group. All rights reserved.
+            </div>
+            <div class="footer-links">
+                <a href="mailto:a2287727616a@163.com">联系我们</a>
+                <a href="#privacy">隐私政策</a>
+                <a href="#terms">使用条款</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Reveal on scroll
+        function reveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(element => {
+                const windowHeight = window.innerHeight;
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', reveal);
+        reveal(); // Initial check
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Stats section animation
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.querySelectorAll('.stat-item').forEach((item, index) => {
+                        item.style.animationDelay = (index * 0.1) + 's';
+                        item.style.opacity = '1';
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const statsSection = document.querySelector('.stats');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+    </script>
+</body>
+</html>
